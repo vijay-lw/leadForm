@@ -101,6 +101,7 @@
           <div id="siteNameError" class="error"></div>
         </div>
         <!-- Service Price Display -->
+        <div id="serviceName" class="price"></div>
         <div id="servicePrice" class="price"></div>
         <input type="submit" value="Submit" />
       </form>
@@ -139,10 +140,14 @@
           })
           .then((data) => {
             const price = data?.data?.finalServicePrice; // Assuming the price is in `price` field
+            const name = data?.data?.displayName; // Assuming the name
             if (price) {
               document.getElementById(
                 "servicePrice"
               ).textContent = `Service Price: ₹${price}`;
+              document.getElementById(
+                "serviceName"
+              ).textContent = `Service Name: ₹${name}`;
             } else {
               document.getElementById("servicePrice").textContent =
                 "Price information not available.";
