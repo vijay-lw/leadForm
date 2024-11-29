@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lead Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .form-container {
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        border-radius: 8px;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        color: #333;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      input[type="submit"] {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      input[type="submit"]:hover {
+        background-color: #45a049;
+      }
+      .error {
+        color: red;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+      .success {
+        color: green;
+        font-size: 14px;
+        text-align: center;
+      }
+      .price {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <h2>Lead Form</h2>
+      <form id="leadForm">
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <input type="text" id="firstName" name="firstName" required />
+          <div id="firstNameError" class="error"></div>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" name="lastName" required />
+          <div id="lastNameError" class="error"></div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required />
+          <div id="emailError" class="error"></div>
+        </div>
+        <div class="form-group">
+          <label for="mobile">Mobile</label>
+          <input type="tel" id="mobile" name="mobile" required />
+          <div id="mobileError" class="error"></div>
+        </div>
+        <div class="form-group">
+          <label for="siteName">Site Name</label>
+          <input type="text" id="siteName" name="siteName" required />
+          <div id="siteNameError" class="error"></div>
+        </div>
+        <!-- Service Price Display -->
+        <div id="servicePrice" class="price"></div>
+        <input type="submit" value="Submit" />
+      </form>
+      <div id="responseMessage" class="success"></div>
+    </div>
+
+    <script>
+      // Get the serviceId from the URL query string
+      const urlParams = new URLSearchParams(window.location.search);
+      const serviceId = urlParams.get("serviceId"); // Retrieve the serviceId from the URL
+
+      if (serviceId) {
+        console.log("Service ID:", serviceId); // For debugging
+      } else {
+        alert("Error: No Service ID provided in the URL!");
+      }
+
+      // Fetch the service price from the API
+      function fetchServicePrice() {
+        const token =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTgsInR5cGUiOiJjdXN0b21lciIsImZpcnN0TmFtZSI6InZpamF5IiwibGFzdE5hbWUiOiJjdXN0b21lciIsImVtYWlsIjoiYW5raXRhOTJwYXJtYXJAZ21haWwuY29tIiwiaXNBY2NvdW50VmVyaWZpZWQiOnRydWUsIm9yZ2FuaXphdGlvbiI6eyJzaXRlbmFtZSI6InlrcGRoaDhpMWoiLCJpZCI6Mn0sImlhdCI6MTczMjc3NjQ1OSwiZXhwIjoxNzMzNjQwNDU5fQ.iU3-_4ieQdSVQVFC-XNO-kGXQ2ScJX3CZjXqkojJxZM"; // Your API token
+
+        fetch(`https://stage-api.lw2.co.in/api/services/${serviceId}`, {
+          method: "GET", // Assuming GET request for fetching service data
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error("Failed to fetch service price");
+            }
+          })
+          .then((data) => {
+            const price = data?.data?.finalServicePrice; // Assuming the price is in `price` field
+            if (price) {
+              document.getElementById(
+                "servicePrice"
+              ).textContent = `Service Price: ₹${price}`;
+            } else {
+              document.getElementById("servicePrice").textContent =
+                "Price information not available.";
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching service price:", error);
+            document.getElementById("servicePrice").textContent =
+              "Failed to fetch price.";
+          });
+      }
+
+      // Call the function to fetch the price when the page loads
+      fetchServicePrice();
+
+      document
+        .getElementById("leadForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          // Clear any previous error messages
+          clearErrors();
+          document.getElementById("responseMessage").textContent = "";
+
+          // Get the form values
+          const firstName = document.getElementById("firstName").value;
+          const lastName = document.getElementById("lastName").value;
+          const email = document.getElementById("email").value;
+          const mobile = document.getElementById("mobile").value;
+          const siteName = document.getElementById("siteName").value;
+
+          // Validate required fields
+          let valid = true;
+          if (!firstName) {
+            valid = false;
+            showError("firstNameError", "First Name is required");
+          }
+          if (!lastName) {
+            valid = false;
+            showError("lastNameError", "Last Name is required");
+          }
+          if (!email) {
+            valid = false;
+            showError("emailError", "Email is required");
+          }
+          if (!mobile) {
+            valid = false;
+            showError("mobileError", "Mobile number is required");
+          }
+          if (!siteName) {
+            valid = false;
+            showError("siteNameError", "Site Name is required");
+          }
+
+          if (valid) {
+            // Prepare the data for API call
+            const formData = {
+              firstName: firstName,
+              lastName: lastName,
+              email: email,
+              mobile: mobile,
+              serviceVersionIds: [serviceId], // Example version id
+              siteName: siteName,
+            };
+
+            // Make the API call using fetch
+            fetch("https://stage-api.lw2.co.in/api/leads/", {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                Authorization:
+                  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTgsInR5cGUiOiJjdXN0b21lciIsImZpcnN0TmFtZSI6InZpamF5IiwibGFzdE5hbWUiOiJjdXN0b21lciIsImVtYWlsIjoiYW5raXRhOTJwYXJtYXJAZ21haWwuY29tIiwiaXNBY2NvdW50VmVyaWZpZWQiOnRydWUsIm9yZ2FuaXphdGlvbiI6eyJzaXRlbmFtZSI6InlrcGRoaDhpMWoiLCJpZCI6Mn0sImlhdCI6MTczMjc3NjQ1OSwiZXhwIjoxNzMzNjQwNDU5fQ.iU3-_4ieQdSVQVFC-XNO-kGXQ2ScJX3CZjXqkojJxZM",
+              },
+              body: JSON.stringify(formData),
+            })
+              .then((response) => {
+                // Check if response is successful
+                if (response.ok) {
+                  return response.json();
+                } else {
+                  throw new Error(
+                    "API request failed with status: " + response.status
+                  );
+                }
+              })
+              .then((data) => {
+                // Display success message
+                document.getElementById("responseMessage").textContent =
+                  "Lead submitted successfully!";
+                document.getElementById("leadForm").reset(); // Reset the form
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                document.getElementById("responseMessage").textContent =
+                  "Failed to submit lead.";
+              });
+          }
+        });
+
+      function showError(elementId, message) {
+        document.getElementById(elementId).textContent = message;
+      }
+
+      function clearErrors() {
+        document.getElementById("firstNameError").textContent = "";
+        document.getElementById("lastNameError").textContent = "";
+        document.getElementById("emailError").textContent = "";
+        document.getElementById("mobileError").textContent = "";
+        document.getElementById("siteNameError").textContent = "";
+      }
+    </script>
+  </body>
+</html>
